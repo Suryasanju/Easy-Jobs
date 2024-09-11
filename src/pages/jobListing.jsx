@@ -3,7 +3,6 @@ import { useUser } from "@clerk/clerk-react";
 import { State } from "country-state-city";
 import { BarLoader } from "react-spinners";
 import useFetch from "@/hooks/use-fetch";
-
 import JobCard from "@/components/job-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +14,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
 
 import { getCompanies } from "@/api/apiCompanies";
 import { getJobs } from "@/api/apiJobs";
@@ -23,14 +31,12 @@ const JobListing = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [location, setLocation] = useState("");
   const [company_id, setCompany_id] = useState("");
+  const [currentPage, setCurrentPage] = useState(1); // State for current page
+  const [jobsPerPage] = useState(6); // Number of jobs per page
 
   const { isLoaded } = useUser();
 
-  const {
-    // loading: loadingCompanies,
-    data: companies,
-    fn: fnCompanies,
-  } = useFetch(getCompanies);
+  const { data: companies, fn: fnCompanies } = useFetch(getCompanies);
 
   const {
     loading: loadingJobs,
@@ -68,9 +74,15 @@ const JobListing = () => {
     setLocation("");
   };
 
+  const indexOfLastJob = currentPage * jobsPerPage;
+  const indexOfFirstJob = indexOfLastJob - jobsPerPage;
+  const currentJobs = jobs?.slice(indexOfFirstJob, indexOfLastJob);
+
   if (!isLoaded) {
     return <BarLoader className="mb-4" width={"100%"} color="#36d7b7" />;
   }
+
+  const totalPages = Math.ceil((jobs?.length || 0) / jobsPerPage);
 
   return (
     <div className="">
@@ -85,7 +97,7 @@ const JobListing = () => {
           type="text"
           placeholder="Search Jobs by Title.."
           name="search-query"
-          className="h-full flex-1  px-4 text-md"
+          className="h-full flex-1 px-4 text-md"
         />
         <Button type="submit" className="h-full sm:w-28" variant="blue">
           Search
@@ -143,21 +155,48 @@ const JobListing = () => {
       )}
 
       {loadingJobs === false && (
-        <div className="mt-8 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {jobs?.length ? (
-            jobs.map((job) => {
-              return (
+        <>
+          <div className="mt-8 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {currentJobs?.length ? (
+              currentJobs.map((job) => (
                 <JobCard
                   key={job.id}
                   job={job}
                   savedInit={job?.saved?.length > 0}
                 />
-              );
-            })
-          ) : (
-            <div>No Jobs Found 😢</div>
+              ))
+            ) : (
+              <div>No Jobs Found 😢</div>
+            )}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-8">
+              <Pagination>
+                <PaginationPrevious
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                />
+                <PaginationContent>
+                  {Array.from({ length: totalPages }, (_, i) => (
+                    <PaginationItem key={i}>
+                      <PaginationLink
+                        isActive={currentPage === i + 1}
+                        onClick={() => setCurrentPage(i + 1)}
+                      >
+                        {i + 1}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                </PaginationContent>
+                <PaginationNext
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                />
+              </Pagination>
+            </div>
           )}
-        </div>
+        </>
       )}
     </div>
   );

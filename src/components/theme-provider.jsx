@@ -1,4 +1,5 @@
-/* eslint-disable react/prop-types */
+// ThemeProvider.js
+
 import { createContext, useContext, useEffect, useState } from "react";
 
 const initialState = {
@@ -21,6 +22,7 @@ export function ThemeProvider({
   useEffect(() => {
     const root = window.document.documentElement;
 
+    // Remove all theme classes before applying new one
     root.classList.remove("light", "dark");
 
     if (theme === "system") {
@@ -33,6 +35,7 @@ export function ThemeProvider({
       return;
     }
 
+    // Apply the selected theme class
     root.classList.add(theme);
   }, [theme]);
 

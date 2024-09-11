@@ -1,30 +1,36 @@
-import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { Button } from "./ui/button";
 import {
   SignedIn,
   SignedOut,
-  UserButton,
   SignIn,
+  UserButton,
   useUser,
 } from "@clerk/clerk-react";
-import { Button } from "./ui/button";
-import { BriefcaseBusiness, Heart, PenBox } from "lucide-react";
+import { BriefcaseBusiness, Heart, PenBox, Moon, Sun } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useTheme } from "./theme-provider";
 
 const Header = () => {
-  const [showSignIn, setShowSignIn] = useState(false);
-
+  const [showSignIn, setshowSignIn] = useState(false);
   const [search, setSearch] = useSearchParams();
   const { user } = useUser();
+  const { theme, setTheme } = useTheme();
+
+  // Toggle between light and dark mode
+  const toggleTheme = () => {
+    setTheme(theme === "light" ? "dark" : "light");
+  };
 
   useEffect(() => {
     if (search.get("sign-in")) {
-      setShowSignIn(true);
+      setshowSignIn(true);
     }
   }, [search]);
 
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
-      setShowSignIn(false);
+      setshowSignIn(false);
       setSearch({});
     }
   };
@@ -32,13 +38,25 @@ const Header = () => {
   return (
     <>
       <nav className="py-4 flex justify-between items-center">
-        <Link to="/">
-          <img src="/logo.png" className="h-20" alt="Hirrd Logo" />
+        <Link>
+          <img src="/logo.png" className="h-20" alt="hiremelogo" />
         </Link>
-
-        <div className="flex gap-8">
+        <div className="flex gap-8 items-center">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleTheme}
+            className="rounded-full overflow-hidden"
+          >
+            {theme === "dark" ? (
+              <Sun className="h-[1.2rem] w-[1.2rem]" />
+            ) : (
+              <Moon className="h-[1.2rem] w-[1.2rem]" />
+            )}
+            <span className="sr-only">Toggle theme</span>
+          </Button>
           <SignedOut>
-            <Button variant="outline" onClick={() => setShowSignIn(true)}>
+            <Button variant="outline" onClick={() => setshowSignIn(true)}>
               Login
             </Button>
           </SignedOut>
@@ -75,7 +93,6 @@ const Header = () => {
           </SignedIn>
         </div>
       </nav>
-
       {showSignIn && (
         <div
           className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
